@@ -39,14 +39,14 @@ func main() {
 	// }
 	fs := os.DirFS("templates")
 	r.Get("/", controllers.StaticHandler(
-		views.Must(views.ParseFS(fs, "home.gohtml"))))
+		views.Must(views.ParseFS(fs,"layout-page.gohtml","home.gohtml",))))
 
 	// tpl, err = views.Parse(filepath.Join("templates", "contact.gohtml"))
 	// if err != nil {
 	// 	panic(err)
 	// }
 	r.Get("/contact", controllers.StaticHandler(
-		views.Must(views.ParseFS(fs, "contact.gohtml"))))
+		views.Must(views.ParseFS(fs, "layout-page.gohtml","contact.gohtml"))))
 
 	// tpl, err = views.Parse(filepath.Join("templates", "faq.gohtml"))
 	// if err != nil {
