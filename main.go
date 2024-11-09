@@ -52,7 +52,7 @@ func main() {
 	// if err != nil {
 	// 	panic(err)
 	// }
-	r.Get("/faq", controllers.StaticHandler(
+	r.Get("/faq", controllers.FAQ(
 		views.Must(views.ParseFS(fs, "faq.gohtml"))))
 
 	r.Get("/contact/{user-id}", MyRequestHandler)

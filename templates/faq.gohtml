@@ -1,6 +1,11 @@
 <h1>FAQ PAGE </h1>
 	<ul>
-	<li> <b>is there any free course ?</b> yes there is free trial of the course .</li>
-	<li> <b> what are your support hours ? </b> we offer a 30 days free trial </li>
-	<li> <b> is there any free version ? </b> yes there are two free versions </li>
+		{{range .}}
+			{{template "qa" .}}
+		{{end}}
 	</ul>
+
+
+{{define "qa"}}
+<li><b>{{.Question}}</b> {{.Answer}}</li>
+{{end}}
