@@ -58,6 +58,8 @@ func main() {
 	usersC := controllers.Users{}
 	usersC.Templates.New = views.Must(views.ParseFS(fs, "signup.gohtml", "tailwind.gohtml"))
 	r.Get("/signup",usersC.New)
+	r.Post("/users",usersC.Create)
+	
 	// r.Get("/signup", controllers.FAQ(
 	// 	views.Must(views.ParseFS(fs, "signup.gohtml", "tailwind.gohtml"))))
 	r.Get("/contact/{user-id}", MyRequestHandler)
