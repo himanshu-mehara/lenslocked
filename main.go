@@ -54,7 +54,9 @@ func main() {
 	// }
 	r.Get("/faq", controllers.FAQ(
 		views.Must(views.ParseFS(fs, "faq.gohtml","tailwind.gohtml"))))
-
+	
+	r.Get("/signup", controllers.FAQ(
+		views.Must(views.ParseFS(fs, "signup.gohtml","tailwind.gohtml"))))
 	r.Get("/contact/{user-id}", MyRequestHandler)
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "page not found", http.StatusNotFound)
