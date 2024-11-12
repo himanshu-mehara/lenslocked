@@ -104,16 +104,50 @@ func main() {
 	// }
 	// fmt.Printf("user info: name=%s,email=%s\n",name,email)
 
+	// userID := 1 
+	// for i := 1; i <= 5; i++ {
+	// 	amount := i * 100 
+	// 	desc := fmt.Sprintf("fake order #%d",i)
+	// 	_,err := db.Exec(`
+	// 	insert into orders(user_id,amount,description)
+	// 	values($1,$2,$3)`,userID,amount,desc)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// }
+	// fmt.Println("created fale orders. ")
+
+	type Order struct {
+		ID int 
+		UserID  int 
+		Amount int 
+		Description string  
+	}
+
+	var orders []Order
 	userID := 1 
-	for i := 1; i <= 5; i++ {
-		amount := i * 100 
-		desc := fmt.Sprintf("fake order #%d",i)
-		_,err := db.Exec(`
-		insert into orders(user_id,amount,description)
-		values($1,$2,$3)`,userID,amount,desc)
+	rows,err := db.Query(`
+	select id ,amount , description
+	from orders
+	where user_id=$1`,userID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var order Order 
+		order.UserID = userID
+		err := rows.Scan(&order.ID,&order.Amount,&order.Description)
 		if err != nil {
 			panic(err)
 		}
+		orders = append(orders, order)
 	}
-	fmt.Println("created fale orders. ")
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("orders:",orders)
+	// check for an error
 }
