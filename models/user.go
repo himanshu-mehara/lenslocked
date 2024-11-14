@@ -1,6 +1,12 @@
 package models
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+	"strings"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 type User struct {
 	ID           int
@@ -10,4 +16,45 @@ type User struct {
 
 type UserService struct {
 	DB *sql.DB
+}
+
+func (us *UserService) Create(email, password string) (*User, error) {
+	email = strings.ToLower(email)
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("create user : %w", err)
+	}
+	passwordHash := string(hashedBytes)
+
+	user := User{
+		Email:        email,
+		PasswordHash: passwordHash,
+	}
+	row := us.DB.QueryRow(`
+	insert into users (email, password_hash)
+	values ($1,$2) returning id`, email, passwordHash)
+	err = row.Scan(&user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("create user: %w", err)
+	}
+	return &user, nil
+}
+
+func (us *UserService) Authenticate(email, password string) (*User, error) {
+	email = strings.ToLower(email)
+	user := User{
+		Email: email,
+	}
+	row := us.DB.QueryRow(`
+	select id, password_hash
+	from users where email=$1`, email)
+	err := row.Scan(&user.ID,&user.PasswordHash)
+	if err != nil {
+		return nil, fmt.Errorf("authenticate : %w",err)
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+	if err != nil {
+		return nil, fmt.Errorf("authenticate : %w",err)
+	}
+	return &user, nil
 }

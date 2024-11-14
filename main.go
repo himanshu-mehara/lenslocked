@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"webdev/controllers"
+	"webdev/models"
 	"webdev/views"
 
 	"github.com/go-chi/chi/v5"
@@ -55,11 +56,27 @@ func main() {
 	r.Get("/faq", controllers.FAQ(
 		views.Must(views.ParseFS(fs, "faq.gohtml", "tailwind.gohtml"))))
 
-	usersC := controllers.Users{}
+	cfg := models.DefaultPostgresConfig()
+	db, err := models.Open(cfg)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	userService := models.UserService{
+		DB: db,
+	}
+
+	usersC := controllers.Users{
+		UserService: &userService,
+	}
 	usersC.Templates.New = views.Must(views.ParseFS(fs, "signup.gohtml", "tailwind.gohtml"))
-	r.Get("/signup",usersC.New)
-	r.Post("/users",usersC.Create)
-	
+	usersC.Templates.SignIn = views.Must(views.ParseFS(fs, "signin.gohtml", "tailwind.gohtml"))
+	r.Get("/signup", usersC.New)
+	r.Post("/users", usersC.Create)
+	r.Get("/signin",usersC.SignIn)
+	r.Post("/signin",usersC.ProcessSignIn)
+
 	// r.Get("/signup", controllers.FAQ(
 	// 	views.Must(views.ParseFS(fs, "signup.gohtml", "tailwind.gohtml"))))
 	r.Get("/contact/{user-id}", MyRequestHandler)
