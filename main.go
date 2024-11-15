@@ -9,6 +9,7 @@ import (
 	"webdev/views"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/csrf"
 )
 
 // func executeTemplate(w http.ResponseWriter, filepath string) {
@@ -74,8 +75,9 @@ func main() {
 	usersC.Templates.SignIn = views.Must(views.ParseFS(fs, "signin.gohtml", "tailwind.gohtml"))
 	r.Get("/signup", usersC.New)
 	r.Post("/users", usersC.Create)
-	r.Get("/signin",usersC.SignIn)
-	r.Post("/signin",usersC.ProcessSignIn)
+	r.Get("/signin", usersC.SignIn)
+	r.Post("/signin", usersC.ProcessSignIn)
+	r.Get("/users/me", usersC.CurrentUser)
 
 	// r.Get("/signup", controllers.FAQ(
 	// 	views.Must(views.ParseFS(fs, "signup.gohtml", "tailwind.gohtml"))))
@@ -83,6 +85,19 @@ func main() {
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "page not found", http.StatusNotFound)
 	})
-	fmt.Println("starting the server on :3000...")
-	http.ListenAndServe(":3000", r)
+	fmt.Println("starting the server on :3000...")	
+	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX"
+	csrfMw := csrf.Protect([]byte(csrfKey),csrf.Secure(false),)
+
+	http.ListenAndServe(":3000", csrfMw(r))
 }
+
+
+
+// func TimerMiddleWare(h http.HandlerFunc) http.HandlerFunc {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		start := time.Now()
+// 		h(w,r)
+// 		fmt.Println("request time :",time.Since(start))
+// 	}
+// }
