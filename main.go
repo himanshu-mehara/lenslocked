@@ -85,14 +85,12 @@ func main() {
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "page not found", http.StatusNotFound)
 	})
-	fmt.Println("starting the server on :3000...")	
+	fmt.Println("starting the server on :3000...")
 	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX"
-	csrfMw := csrf.Protect([]byte(csrfKey),csrf.Secure(false),)
+	csrfMw := csrf.Protect([]byte(csrfKey), csrf.Secure(false))
 
 	http.ListenAndServe(":3000", csrfMw(r))
 }
-
-
 
 // func TimerMiddleWare(h http.HandlerFunc) http.HandlerFunc {
 // 	return func(w http.ResponseWriter, r *http.Request) {

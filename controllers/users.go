@@ -5,16 +5,16 @@ import (
 	// "html/template"
 	"net/http"
 	"webdev/models"
-
 	// "github.com/gorilla/csrf"
 )
 
 type Users struct {
 	Templates struct {
-		New Template
+		New    Template
 		SignIn Template
 	}
-	UserService *models.UserService
+	UserService    *models.UserService
+	SessionService *models.SessionService
 }
 
 func (u Users) New(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +24,7 @@ func (u Users) New(w http.ResponseWriter, r *http.Request) {
 	}
 	data.Email = r.FormValue("email")
 	// data.CSRFField = csrf.TemplateField(r )
-	u.Templates.New.Execute(w, r,data)
+	u.Templates.New.Execute(w, r, data)
 }
 
 func (u Users) Create(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +36,21 @@ func (u Users) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "something wend wrong", http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintf(w," user created : %v",user)
+	session, err := u.SessionService.Create(user.ID)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/signin", http.StatusFound)
+		return
+	}
+	setCookie(w,CookieSession,session.Token)
+	// cookie := http.Cookie{
+	// 	Name:     "session",
+	// 	Value:    session.Token,
+	// 	Path:     "/",
+	// 	HttpOnly: true,
+	// }
+	// http.SetCookie(w, cookie)
+	http.Redirect(w, r, "/users/me", http.StatusFound)
 }
 
 func (u Users) SignIn(w http.ResponseWriter, r *http.Request) {
@@ -44,39 +58,55 @@ func (u Users) SignIn(w http.ResponseWriter, r *http.Request) {
 		Email string
 	}
 	data.Email = r.FormValue("email")
-	u.Templates.SignIn.Execute(w, r,data)
+	u.Templates.SignIn.Execute(w, r, data)
 }
 
 func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 	var data struct {
-		Email string
+		Email    string
 		Password string
 	}
 	data.Email = r.FormValue("email")
 	data.Password = r.FormValue("password")
-	user,err := u.UserService.Authenticate(data.Email,data.Password)
+	user, err := u.UserService.Authenticate(data.Email, data.Password)
 	if err != nil {
 		fmt.Println(err)
-		http.Error(w,"something went wrong.",http.StatusInternalServerError)
-		return 
+		http.Error(w, "something went wrong.", http.StatusInternalServerError)
+		return
 	}
-	cookie := http.Cookie{
-		Name: "email",
-		Value: user.Email,
-		Path: "/",
-		HttpOnly: true,
+	session, err := u.SessionService.Create(user.ID)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "something went wrong.", http.StatusInternalServerError)
+		return
 	}
-	http.SetCookie(w,&cookie)
-	fmt.Fprintf(w,"user authencated %+v", user)
+	setCookie(w,CookieSession,session.Token)
+	// cookie := http.Cookie{
+	// 	Name:     "session",
+	// 	Value:    session.Token,
+	// 	Path:     "/",
+	// 	HttpOnly: true,
+	// }
+	// http.SetCookie(w, &cookie)
+	http.Redirect(w, r, "/users/me", http.StatusFound)
+	// fmt.Fprintf(w, "user authencated %+v", user)
 }
 
 func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
-	email , err := r.Cookie("email")
+	token,err := readCookie(r,CookieSession)
+	// tokenCookie, err := r.Cookie(CookieSession)
 	if err != nil {
-		fmt.Fprint(w,"the email cookie could not be read")
-		return  
+		fmt.Println(err)
+		http.Redirect(w, r, "/signin", http.StatusFound)
+		return
 	}
-	fmt.Fprintf(w,"email cookie : %s\n", email.Value)
-	fmt.Fprintf(w,"header: %+v\n",r.Header)
-	
+	user, err := u.SessionService.User(token)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/signin", http.StatusFound)
+		return
+	}
+	fmt.Fprintf(w, "current user : %s\n", user.Email)
+	// fmt.Fprintf(w, "email cookie : %s\n", email.Value)
+	// fmt.Fprintf(w, "header: %+v\n", r.Header)
 }
