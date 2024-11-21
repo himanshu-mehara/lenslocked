@@ -81,6 +81,8 @@ func main() {
 	r.Get("/signin", usersC.SignIn)
 	r.Post("/signin", usersC.ProcessSignIn)
 	r.Get("/users/me", usersC.CurrentUser)
+	r.Post("/signout",usersC.ProcessSignOut)
+
 
 	// r.Get("/signup", controllers.FAQ(
 	// 	views.Must(views.ParseFS(fs, "signup.gohtml", "tailwind.gohtml"))))
