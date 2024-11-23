@@ -9,12 +9,12 @@ create table sessions (
 -- alter table sessions add constraint sessions_user_id_fkey 
 -- foreign key (user_id) references users (id);
 
-select users.id,
-users.email,
-users.password_hash 
-from sessions 
-join users on users.id = sessions.user_id
-where sessions.token_hash = $1;
+-- select users.id,
+-- users.email,
+-- users.password_hash 
+-- from sessions 
+-- join users on users.id = sessions.user_id
+-- where sessions.token_hash = $1;
 
 
 
