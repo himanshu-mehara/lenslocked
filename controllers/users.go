@@ -4,6 +4,7 @@ import (
 	"fmt"
 	// "html/template"
 	"net/http"
+	"webdev/context"
 	"webdev/models"
 	// "github.com/gorilla/csrf"
 )
@@ -42,7 +43,7 @@ func (u Users) Create(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/signin", http.StatusFound)
 		return
 	}
-	setCookie(w,CookieSession,session.Token)
+	setCookie(w, CookieSession, session.Token)
 	// cookie := http.Cookie{
 	// 	Name:     "session",
 	// 	Value:    session.Token,
@@ -80,7 +81,7 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "something went wrong.", http.StatusInternalServerError)
 		return
 	}
-	setCookie(w,CookieSession,session.Token)
+	setCookie(w, CookieSession, session.Token)
 	// cookie := http.Cookie{
 	// 	Name:     "session",
 	// 	Value:    session.Token,
@@ -93,27 +94,36 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
-	token,err := readCookie(r,CookieSession)
-	// tokenCookie, err := r.Cookie(CookieSession)
-	if err != nil {
-		fmt.Println(err)
-		http.Redirect(w, r, "/signin", http.StatusFound)
-		return
-	}
-	user, err := u.SessionService.User(token)
-	if err != nil {
-		fmt.Println(err)
+	ctx := r.Context()
+	user := context.User(ctx)
+	if user == nil {
 		http.Redirect(w, r, "/signin", http.StatusFound)
 		return
 	}
 	fmt.Fprintf(w, "current user : %s\n", user.Email)
+
+
+
+	// token, err := readCookie(r, CookieSession)
+	// // tokenCookie, err := r.Cookie(CookieSession)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	http.Redirect(w, r, "/signin", http.StatusFound)
+	// 	return
+	// }
+	// user, err := u.SessionService.User(token)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	http.Redirect(w, r, "/signin", http.StatusFound)
+	// 	return
+	// }
+	// fmt.Fprintf(w, "current user : %s\n", user.Email)
 	// fmt.Fprintf(w, "email cookie : %s\n", email.Value)
 	// fmt.Fprintf(w, "header: %+v\n", r.Header)
 }
 
-
 func (u Users) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
-	token,err := readCookie(r,CookieSession)
+	token, err := readCookie(r, CookieSession)
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/signin", http.StatusFound)
@@ -122,9 +132,34 @@ func (u Users) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
 	err = u.SessionService.Delete(token)
 	if err != nil {
 		fmt.Println(err)
-		http.Error(w,"something went wrong",http.StatusInternalServerError)
-		return 
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
 	}
-	deleteCookie(w,CookieSession)
-	http.Redirect(w,r,"/signin",http.StatusFound)
+	deleteCookie(w, CookieSession)
+	http.Redirect(w, r, "/signin", http.StatusFound)
 }
+
+
+type UserMiddlefware struct {
+	SessionService *models.SessionService
+}
+
+func (umw UserMiddlefware) SetUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token, err := readCookie(r, CookieSession)
+		if err != nil {
+			next.ServeHTTP(w,r)
+			return
+		}
+		user, err := umw.SessionService.User(token)
+		if err != nil {
+			next.ServeHTTP(w,r)
+			return
+		}
+		ctx := r.Context()
+		ctx = context.WithUser(ctx,user)
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w,r)
+	})
+}
+

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"webdev/controllers"
+	"webdev/migrations"
 	"webdev/models"
 	"webdev/views"
 
@@ -65,11 +66,11 @@ func main() {
 	}
 	defer db.Close()
 
-	err = models.Migrate(db,"migrations")
+	err = models.MigrateFS(db, migrations.FS, ".")
 	if err != nil {
 		panic(err)
 	}
-	
+
 	userService := models.UserService{
 		DB: db,
 	}
@@ -77,7 +78,7 @@ func main() {
 		DB: db,
 	}
 	usersC := controllers.Users{
-		UserService: &userService,
+		UserService:    &userService,
 		SessionService: &sessionService,
 	}
 	usersC.Templates.New = views.Must(views.ParseFS(fs, "signup.gohtml", "tailwind.gohtml"))
@@ -87,8 +88,7 @@ func main() {
 	r.Get("/signin", usersC.SignIn)
 	r.Post("/signin", usersC.ProcessSignIn)
 	r.Get("/users/me", usersC.CurrentUser)
-	r.Post("/signout",usersC.ProcessSignOut)
-
+	r.Post("/signout", usersC.ProcessSignOut)
 
 	// r.Get("/signup", controllers.FAQ(
 	// 	views.Must(views.ParseFS(fs, "signup.gohtml", "tailwind.gohtml"))))
@@ -96,11 +96,16 @@ func main() {
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "page not found", http.StatusNotFound)
 	})
-	fmt.Println("starting the server on :3000...")
+	// fmt.Println("starting the server on :3000...")
+	umw := controllers.UserMiddlefware{
+		SessionService: &sessionService,
+	}
+
+
 	csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX"
 	csrfMw := csrf.Protect([]byte(csrfKey), csrf.Secure(false))
-
-	http.ListenAndServe(":3000", csrfMw(r))
+	fmt.Println("starting the server on :3000...")
+	http.ListenAndServe(":3000", csrfMw(umw.SetUser(r)))
 }
 
 // func TimerMiddleWare(h http.HandlerFunc) http.HandlerFunc {
