@@ -1,53 +1,53 @@
-package main
+// package main
 
-import (
-	"fmt"
-	"webdev/models"
+// import (
+// 	"fmt"
+// 	"webdev/models"
 
-	_ "github.com/jackc/pgx/v4/stdlib"
-)
+// 	_ "github.com/jackc/pgx/v4/stdlib"
+// )
 
-// type User struct {
-// 	Name string
-// 	Bio  string
+// // type User struct {
+// // 	Name string
+// // 	Bio  string
+// // }
+
+// // type PostgresConfig struct {
+// // 	Host string
+// // 	Port string
+// // 	User string
+// // 	Password string
+// // 	Database string
+// // 	SSLMode string
+// // }
+
+// // func (cfg PostgresConfig) String() string{
+// // 	return fmt.Sprintf( "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",cfg.Host,cfg.Port,cfg.User,cfg.Password,cfg.Database,cfg.SSLMode)
+
+// // }
+// func main() {
+// 	cfg := models.DefaultPostgresConfig()
+// 	db, err := models.Open(cfg)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer db.Close()
+
+// 	err = db.Ping()
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	fmt.Println("connected")
+
+// 	us := models.UserService{
+// 		DB: db,
+// 	}
+// 	user, err := us.Create("bob4@bob.com", "bob123")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	fmt.Println(user)
 // }
-
-// type PostgresConfig struct {
-// 	Host string
-// 	Port string
-// 	User string
-// 	Password string
-// 	Database string
-// 	SSLMode string
-// }
-
-// func (cfg PostgresConfig) String() string{
-// 	return fmt.Sprintf( "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",cfg.Host,cfg.Port,cfg.User,cfg.Password,cfg.Database,cfg.SSLMode)
-
-// }
-func main() {
-	cfg := models.DefaultPostgresConfig()
-	db, err := models.Open(cfg)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-	
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("connected")
-
-	us := models.UserService{
-		DB: db,
-	}
-	user, err := us.Create("bob4@bob.com", "bob123")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(user)
-}
 
 //create a table
 // _,err = db.Exec(`
@@ -155,3 +155,45 @@ func main() {
 // 	fmt.Println("orders:",orders)
 // 	// check for an error
 // }
+
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/go-mail/mail/v2"
+)
+
+const (
+	Host     = "sandbox.smtp.mailtrap.io"
+	Port     = 2525
+	Username = "0a25f7a7d9236c"
+	Password = "09efec939b67ef"
+)
+
+func main() {
+	from := "test@lenslocked.com"
+	to := "mehrahimanshu1708@gmail.com"
+	subject := "this is a test email "
+	plaintext := "this is the body of the email"
+	html := `<h1> hello there buddy </h1> <p> this is the email </p> 
+	<p> hope you enjoy it </p>`
+	msg := mail.NewMessage()
+
+	msg.SetHeader("to", to)
+	msg.SetHeader("from", from)
+	msg.SetHeader("subject", subject)
+	msg.SetBody("text/plain", plaintext)
+	msg.AddAlternative("text/html", html)
+
+	msg.WriteTo(os.Stdout)
+
+	dialer := mail.NewDialer(Host, Port, Username, Password)
+	err := dialer.DialAndSend(msg)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("message sent ")
+
+}
