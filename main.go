@@ -91,7 +91,7 @@ func main() {
 	}
 	emailService := models.NewEmaiService(cfg.SMTP)
 
-	umw := controllers.UserMiddlefware{
+	umw := controllers.UserMiddleware{
 		SessionService: sessionService,
 	}
 
@@ -109,6 +109,7 @@ func main() {
 	usersC.Templates.SignIn = views.Must(views.ParseFS(fs, "signin.gohtml", "tailwind.gohtml"))
 	usersC.Templates.ForgotPassword = views.Must(views.ParseFS(fs, "forgot-pw.gohtml", "tailwind.gohtml"))
 	usersC.Templates.CheckYourEmail = views.Must(views.ParseFS(fs, "check-your-email.gohtml", "tailwind.gohtml"))
+	usersC.Templates.ResetPassword = views.Must(views.ParseFS(fs, "reset-pw.gohtml", "tailwind.gohtml"))
 
 	r := chi.NewRouter()
 	r.Use(csrfMw)
@@ -126,7 +127,8 @@ func main() {
 	r.Post("/signin", usersC.ProcessSignIn)
 	r.Get("/forgot-pw", usersC.ForgotPassword)
 	r.Post("/forgot-pw", usersC.ProcessForgotPassword)
-		
+	r.Get("/reset-pw",usersC.ResetPassword)
+	r.Post("/reset-pw",usersC.ProcessResetPassword)
 
 
 	r.Route("/users/me", func(r chi.Router) {
