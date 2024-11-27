@@ -69,6 +69,7 @@ func main() {
 	}
 	usersC.Templates.New = views.Must(views.ParseFS(fs, "signup.gohtml", "tailwind.gohtml"))
 	usersC.Templates.SignIn = views.Must(views.ParseFS(fs, "signin.gohtml", "tailwind.gohtml"))
+	usersC.Templates.ForgotPassword = views.Must(views.ParseFS(fs, "forgot-pw.gohtml", "tailwind.gohtml"))
 
 
 	r := chi.NewRouter()
@@ -122,6 +123,8 @@ func main() {
 	r.Post("/users", usersC.Create)
 	r.Get("/signin", usersC.SignIn)
 	r.Post("/signin", usersC.ProcessSignIn)
+	r.Get("/forgot-pw",usersC.ForgotPassword)
+	r.Post("/forgot-pw",usersC.ProcessForgotPassword)
 	r.Route("/users/me",func(r chi.Router) {
 		r.Use(umw.RequireUser)
 		r.Get("/",usersC.CurrentUser)
