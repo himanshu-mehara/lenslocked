@@ -199,14 +199,21 @@ func (u Users) ProcessResetPassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "somethng went wrong", http.StatusInternalServerError)
 		return
 	}
-	session,err := u.SessionService.Create(user.ID)
+	err = u.UserService.UpdatePassword(user.ID, data.Password)
 	if err != nil {
 		fmt.Println(err)
-		http.Redirect(w,r,"/signin",http.StatusFound)
+		http.Error(w, "somethng went wrong", http.StatusInternalServerError)
 		return
 	}
-	setCookie(w,CookieSession,session.Token)
-	http.Redirect(w,r,"/user/me",http.StatusFound)
+
+	session, err := u.SessionService.Create(user.ID)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/signin", http.StatusFound)
+		return
+	}
+	setCookie(w, CookieSession, session.Token)
+	http.Redirect(w, r, "/user/me", http.StatusFound)
 }
 
 type UserMiddleware struct {
