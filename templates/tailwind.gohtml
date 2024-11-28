@@ -29,28 +29,33 @@
                     <a class="px-4 py-2 bg-blue-700 hover:bg-blue-600 rounded" href="/signup">sign up </a>
                 {{end}}
             </div>
+        </div>
         </nav>
     </header>
 
     {% comment %} alerts  {% endcomment %}
-    <div class="py-4 px-2">
-        <div class="flex bg-red-100 rounded px-2 py-2 text-red-800 mb-2>
-            <div class="flex-grow">
-                the email address you provided is already associated with an account.
-            </div>
+    {{if errors }}
+        <div class="py-4 px-2">
+            {{ range errors}}
+                <div class="flex bg-red-100 rounded px-2 py-2 text-red-800 mb-2>
+                    <div class="flex-grow">
+                        {{.}}
+                    </div>
+                <a href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" 
+                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+                    class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" 
+                        d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                
+                </a>
+                </div>
+            {{end}}
         </div>
-        <a href="#">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" 
-            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
-            class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round" 
-                d="M6 18 18 6M6 6l12 12" />
-            </svg>
-              
-        </a>
-    </div>
+    {{end}}
 
-    <div class="flex bg-red-100 rounded px-2 py-2 text-red-800 mb-2>
+    {% comment %} <div class="flex bg-red-100 rounded px-2 py-2 text-red-800 mb-2>
         <div class="flex-grow">
             something went wrongthe
         </div>
@@ -63,7 +68,7 @@
         </svg>
           
     </a>
-    </div>
+    </div> {% endcomment %}
 
 {{end}}
   <!-- ... -->
