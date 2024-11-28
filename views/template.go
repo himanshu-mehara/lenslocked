@@ -35,15 +35,15 @@ func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 			"currentUser": func() (template.HTML, error) {
 				return "", fmt.Errorf("currentUser not implemented")
 			},
-			"errors": func() []string {
-				return []string{
-					"don't do this",
-					"the email address you provided is a already associated with an account",
-					"something went wrong",
 
-				}
+			"errors": func() []string {
+				return nil 
+					// "don't do this",
+					// "the email address you provided is a already associated with an account",
+					// "something went wrong",
+
+				},
 			},
-		},
 	)
 	tpl, err := tpl.ParseFS(fs, patterns...)
 	if err != nil {
@@ -68,7 +68,12 @@ type Template struct {
 	htmlTpl *template.Template
 }
 
-func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface{}) {
+// type Data struct {
+// 	Yield interface{} 
+// 	Alerts []Alert 
+// }
+
+func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface{}, errs ...error) {
 	tpl, err := t.htmlTpl.Clone()
 	if err != nil {
 		log.Printf("cloning template : %v", err)
@@ -81,6 +86,13 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface
 			},
 			"currentUser": func() *models.User {
 				return context.User(r.Context())
+			},
+			"errors": func() []string {
+				var errMessages []string 
+				for _,err := range errs {
+					errMessages= append(errMessages,err.Error())
+				}
+				return errMessages
 			},
 		},
 	)
