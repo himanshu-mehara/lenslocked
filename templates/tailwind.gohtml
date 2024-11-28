@@ -37,11 +37,11 @@
     {{if errors }}
         <div class="py-4 px-2">
             {{ range errors}}
-                <div class="flex bg-red-100 rounded px-2 py-2 text-red-800 mb-2>
+                <div class="closeable flex bg-red-100 rounded px-2 py-2 text-red-800 mb-2>
                     <div class="flex-grow">
                         {{.}}
                     </div>
-                <a href="#">
+                <a href="#" onclick="closeAlert(event)">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" 
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
                     class="size-6">
@@ -73,6 +73,13 @@
 {{end}}
   <!-- ... -->
 {{define "footer"}}
+<script>
+    function closeAlert(event) {
+        let closeable = event.target.closet(".closeable");
+        closeable.remove();
+        {% comment %} closeable.classList.add("hidden"); {% endcomment %}
+    }
+</script>
 </body>
 </html>
 {{end}}
