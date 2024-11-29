@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"webdev/context"
+	"webdev/errors"
 	"webdev/models"
 	// "github.com/gorilla/csrf"
 )
@@ -36,14 +37,17 @@ func (u Users) New(w http.ResponseWriter, r *http.Request) {
 
 func (u Users) Create(w http.ResponseWriter, r *http.Request) {
 	var data struct {
-		Email string 
+		Email    string
 		Password string
 	}
 	data.Email = r.FormValue("email")
 	data.Password = r.FormValue("password")
 	user, err := u.UserService.Create(data.Email, data.Password)
 	if err != nil {
-		u.Templates.New.Execute(w,r,data,err)
+		if errors.Is(err, models.ErrEmailTaken) {
+			err = errors.Public(err, "that email address is already associated with an account.")
+		}
+		u.Templates.New.Execute(w, r, data, err)
 		// fmt.Println(err)
 		// http.Error(w, "something wend wrong", http.StatusInternalServerError)
 		return
