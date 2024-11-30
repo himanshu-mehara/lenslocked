@@ -78,3 +78,24 @@ func (service *GalleryService) ByUserID(userID int) ([]Gallery,error) {
 	}
 	return galleries,nil
 }
+
+func (service *GalleryService) Update(galler *Gallery) error {
+	_,err := service.DB.Exec(`
+	UPDATE galleries
+	set title = $2
+	where id = $1;`,galler.ID,galler.Title)
+	if err != nil{
+		return fmt.Errorf("update gallery: %w",err)
+	}
+	return nil 
+}
+
+func (service *GalleryService) Delete(id int) error {
+	_,err := service.DB.Exec(`
+	delete from galleries
+	where id = $1;`,id)
+	if err != nil {
+		return fmt.Errorf("delete gallery : %w",err)
+	}
+	return nil 
+}
