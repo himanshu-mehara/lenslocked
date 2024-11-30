@@ -11,10 +11,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	ErrEmailTaken = errors.New("models: email address is already in use")
-)
-
 type User struct {
 	ID           int
 	Email        string
@@ -43,9 +39,9 @@ func (us *UserService) Create(email, password string) (*User, error) {
 	err = row.Scan(&user.ID)
 	if err != nil {
 		var pgError *pgconn.PgError
-		if errors.As(err,&pgError) {
+		if errors.As(err, &pgError) {
 			if pgError.Code == pgerrcode.UniqueViolation {
-				return nil ,ErrEmailTaken
+				return nil, ErrEmailTaken
 			}
 		}
 		// fmt.Printf("type = %T\n",err)
@@ -63,17 +59,16 @@ func (us *UserService) Authenticate(email, password string) (*User, error) {
 	row := us.DB.QueryRow(`
 	select id, password_hash
 	from users where email=$1`, email)
-	err := row.Scan(&user.ID,&user.PasswordHash)
+	err := row.Scan(&user.ID, &user.PasswordHash)
 	if err != nil {
-		return nil, fmt.Errorf("authenticate : %w",err)
+		return nil, fmt.Errorf("authenticate : %w", err)
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 	if err != nil {
-		return nil, fmt.Errorf("authenticate : %w",err)
+		return nil, fmt.Errorf("authenticate : %w", err)
 	}
 	return &user, nil
 }
-
 
 func (us *UserService) UpdatePassword(userID int, password string) error {
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -81,13 +76,13 @@ func (us *UserService) UpdatePassword(userID int, password string) error {
 		return fmt.Errorf("update password: %w", err)
 	}
 	passwordHash := string(hashedBytes)
-	_,err = us.DB.Exec(`
+	_, err = us.DB.Exec(`
 	update users
 	set password_hash = $2
-	where id = $1;`,userID,passwordHash)
+	where id = $1;`, userID, passwordHash)
 	if err != nil {
-		return fmt.Errorf("update password: %w",err)
+		return fmt.Errorf("update password: %w", err)
 
 	}
-	return nil 
+	return nil
 }
