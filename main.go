@@ -8,6 +8,7 @@ import (
 	"webdev/controllers"
 	"webdev/migrations"
 	"webdev/models"
+	"webdev/templates"
 	"webdev/views"
 
 	"github.com/go-chi/chi/v5"
@@ -47,9 +48,9 @@ func loadEnvConfig() (config, error) {
 	cfg.PSQL = models.DefaultPostgresConfig()
 	cfg.SMTP.Host = os.Getenv("SMTP_HOST")
 	portStr := os.Getenv("SMTP_PORT")
-	cfg.SMTP.Port , err = strconv.Atoi(portStr)
+	cfg.SMTP.Port, err = strconv.Atoi(portStr)
 	if err != nil {
-		return cfg,err
+		return cfg, err
 	}
 	// cfg.SMTP.Port = os.Getenv("SMTP_PORT")
 	cfg.SMTP.Username = os.Getenv("SMTP_USERNAME")
@@ -63,7 +64,7 @@ func loadEnvConfig() (config, error) {
 }
 
 func main() {
-	cfg,err := loadEnvConfig()
+	cfg, err := loadEnvConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -90,6 +91,9 @@ func main() {
 		DB: db,
 	}
 	emailService := models.NewEmaiService(cfg.SMTP)
+	galleryService := &models.GalleryService{
+		DB: db,
+	}
 
 	umw := controllers.UserMiddleware{
 		SessionService: sessionService,
@@ -97,19 +101,28 @@ func main() {
 
 	fs := os.DirFS("templates")
 	// csrfKey := "gFvi45R4fy5xNBlnEeZtQbfAVCYEIAUX"
-	csrfMw := csrf.Protect([]byte(cfg.CSRF.Key), csrf.Secure(cfg.CSRF.Secure))
+	csrfMw := csrf.Protect([]byte(cfg.CSRF.Key), csrf.Secure(cfg.CSRF.Secure),csrf.Path("/"),)
 
 	usersC := controllers.Users{
-		UserService:   userService,
-		SessionService: sessionService,
+		UserService:          userService,
+		SessionService:       sessionService,
 		PasswordResetService: pwResetService,
-		EmailService: emailService,
+		EmailService:         emailService,
 	}
 	usersC.Templates.New = views.Must(views.ParseFS(fs, "signup.gohtml", "tailwind.gohtml"))
 	usersC.Templates.SignIn = views.Must(views.ParseFS(fs, "signin.gohtml", "tailwind.gohtml"))
 	usersC.Templates.ForgotPassword = views.Must(views.ParseFS(fs, "forgot-pw.gohtml", "tailwind.gohtml"))
 	usersC.Templates.CheckYourEmail = views.Must(views.ParseFS(fs, "check-your-email.gohtml", "tailwind.gohtml"))
 	usersC.Templates.ResetPassword = views.Must(views.ParseFS(fs, "reset-pw.gohtml", "tailwind.gohtml"))
+	galleriesC := controllers.Galleries{
+		GalleryService: galleryService,
+	}
+	galleriesC.Templates.New = views.Must(views.ParseFS(
+		templates.FS,
+		"galleries/new.gohtml", "tailwind.gohtml",
+	))
+
+
 
 	r := chi.NewRouter()
 	r.Use(csrfMw)
@@ -127,9 +140,14 @@ func main() {
 	r.Post("/signin", usersC.ProcessSignIn)
 	r.Get("/forgot-pw", usersC.ForgotPassword)
 	r.Post("/forgot-pw", usersC.ProcessForgotPassword)
-	r.Get("/reset-pw",usersC.ResetPassword)
-	r.Post("/reset-pw",usersC.ProcessResetPassword)
-
+	r.Get("/reset-pw", usersC.ResetPassword)
+	r.Post("/reset-pw", usersC.ProcessResetPassword)
+	r.Route("galleries", func(r chi.Router) {
+		r.Group(func(r chi.Router){
+			r.Use(umw.RequireUser)
+			r.Get("/new",galleriesC.New)
+		})
+	})
 
 	r.Route("/users/me", func(r chi.Router) {
 		r.Use(umw.RequireUser)
@@ -141,7 +159,7 @@ func main() {
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "page not found", http.StatusNotFound)
 	})
-	fmt.Printf("starting the server on %s.../n",cfg.Server.Address)
+	fmt.Printf("starting the server on %s.../n", cfg.Server.Address)
 	err = http.ListenAndServe(cfg.Server.Address, r)
 	if err != nil {
 		panic(err)

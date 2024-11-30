@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"path"
 	"webdev/context"
 	"webdev/models"
 
@@ -27,7 +28,7 @@ func Must(t Template, err error) Template {
 }
 
 func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
-	tpl := template.New(patterns[0])
+	tpl := template.New(path.Base(patterns[0]))
 	// tpl, err := template.ParseFS(fs, patterns...)
 	// if err != nil {
 	// 	return Template{}, fmt.Errorf("parsing template: %w", err)
@@ -54,6 +55,7 @@ func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 	if err != nil {
 		return Template{}, fmt.Errorf("parsing template: %w", err)
 	}
+	// tpl.Lookup("new.gohtml")
 	return Template{
 		htmlTpl: tpl,
 	}, nil
@@ -120,7 +122,6 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface
 	io.Copy(w, &buf)
 }
 
-
 func errMessages(errs ...error) []string {
 	var msgs []string
 	for _, err := range errs {
@@ -129,7 +130,7 @@ func errMessages(errs ...error) []string {
 			msgs = append(msgs, pubErr.Public())
 		} else {
 			fmt.Println(err)
-			msgs = append(msgs,"something went wrong.")
+			msgs = append(msgs, "something went wrong.")
 		}
 	}
 	return msgs
