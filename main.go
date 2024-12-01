@@ -152,6 +152,8 @@ func main() {
 			r.Get("/new",galleriesC.New)
 			r.Get("/{id}edit",galleriesC.Edit)
 			r.Post("/",galleriesC.Create)
+			r.Post("/{id}", galleriesC.Update)
+			r.Get("/",galleriesC.Index)
 		})
 	})
 
