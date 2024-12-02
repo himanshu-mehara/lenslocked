@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"path/filepath"
 )
 
 type Gallery struct {
@@ -14,6 +15,11 @@ type Gallery struct {
 
 type GalleryService struct {
 	DB *sql.DB
+
+	// ImagesDir is used to tell the GalleryService where to store and locate
+	// images. If not set, the GalleryService will default to using the "images"
+	// directory.
+	ImagesDir string
 }
 
 func (service *GalleryService) Create(title string, userID int) (*Gallery, error) {
@@ -51,51 +57,58 @@ func (service *GalleryService) ByID(id int) (*Gallery, error) {
 
 }
 
-func (service *GalleryService) ByUserID(userID int) ([]Gallery,error) {
-	rows , err := service.DB.Query(`
+func (service *GalleryService) ByUserID(userID int) ([]Gallery, error) {
+	rows, err := service.DB.Query(`
 	select id, title
 	from galleries
-	where user_id=$1;`,userID)
+	where user_id=$1;`, userID)
 	if err != nil {
-		return nil,fmt.Errorf("query galleries by user: %w",err)
+		return nil, fmt.Errorf("query galleries by user: %w", err)
 
 	}
-	var galleries []Gallery 
+	var galleries []Gallery
 	for rows.Next() {
-		gallery := Gallery {
+		gallery := Gallery{
 			UserID: userID,
-
 		}
-		err = rows.Scan(&gallery.ID,&gallery.Title)
+		err = rows.Scan(&gallery.ID, &gallery.Title)
 		if err != nil {
-			return nil , fmt.Errorf("query galleries by user: %w",err)
+			return nil, fmt.Errorf("query galleries by user: %w", err)
 		}
 		galleries = append(galleries, gallery)
 
 	}
 	if rows.Err() != nil {
-		return nil , fmt.Errorf("query galleries by user: %w",err)
+		return nil, fmt.Errorf("query galleries by user: %w", err)
 	}
-	return galleries,nil
+	return galleries, nil
 }
 
 func (service *GalleryService) Update(galler *Gallery) error {
-	_,err := service.DB.Exec(`
+	_, err := service.DB.Exec(`
 	UPDATE galleries
 	set title = $2
-	where id = $1;`,galler.ID,galler.Title)
-	if err != nil{
-		return fmt.Errorf("update gallery: %w",err)
+	where id = $1;`, galler.ID, galler.Title)
+	if err != nil {
+		return fmt.Errorf("update gallery: %w", err)
 	}
-	return nil 
+	return nil
 }
 
 func (service *GalleryService) Delete(id int) error {
-	_,err := service.DB.Exec(`
+	_, err := service.DB.Exec(`
 	delete from galleries
-	where id = $1;`,id)
+	where id = $1;`, id)
 	if err != nil {
-		return fmt.Errorf("delete gallery : %w",err)
+		return fmt.Errorf("delete gallery : %w", err)
 	}
 	return nil
+}
+
+func (service GalleryService) galleryDir(id int) string {
+	imagesDir := service.ImagesDir
+	if imagesDir == "" {
+		imagesDir = "images"
+	}
+	return filepath.Join(imagesDir, fmt.Sprintf("gallery-%d", id))
 }
