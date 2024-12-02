@@ -48,6 +48,31 @@
       </button>
     </div>
   </form>
+  
+  {% comment %} <div class="p-8 w-full">
+    <h1 class="pt-4 pb-8 text-3xl font-bold text-gray-800">
+      Edit your Gallery
+    </h1>
+    <form action="/galleries/{{.ID}}" method="post">
+      <!-- ... -->
+    </form>
+    <!-- Images --> {% endcomment %}
+    <div class="py-4">
+      <h2 class="pb-2 text-sm font-semibold text-gray-800">Current Images</h2>
+      <div class="py-2 grid grid-cols-8 gap-2">
+        {{range .Images}}
+          <div class="h-min w-full relative">
+            <img class="w-full" src="/galleries/{{.GalleryID}}/images/{{.FilenameEscaped}}">
+          </div>
+        {{end}}
+      </div>
+    </div>
+    <!-- Danger Actions -->
+    <!-- ... -->
+  </div>
+
+
+  {% comment %} old code {% endcomment %}
   <div class="py-4">
     <h2>Dangerus actions</h2>
 

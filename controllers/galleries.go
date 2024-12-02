@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"webdev/context"
@@ -52,12 +53,31 @@ func (g Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+	type Image struct {
+		GalleryID       int
+		Filename        string
+		FilenameEscaped string
+	}
 	var data struct {
 		ID    int
 		Title string
+		Images []Image
 	}
 	data.ID = gallery.ID
 	data.Title = gallery.Title
+	images, err := g.GalleryService.Images(gallery.ID)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	for _, image := range images {
+		data.Images = append(data.Images, Image{
+			GalleryID:       image.GalleryID,
+			Filename:        image.Filename,
+			FilenameEscaped: url.PathEscape(image.Filename),
+		})
+	}
 	g.Templates.Edit.Execute(w, r, data)
 }
 
@@ -109,6 +129,7 @@ func (g Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	type Image struct {
 		GalleryID int
 		Filename  string
+		FilenameEscaped string
 	}
 	var data struct {
 		ID     int
@@ -127,6 +148,7 @@ func (g Galleries) Show(w http.ResponseWriter, r *http.Request) {
 		data.Images = append(data.Images, Image{
 			GalleryID: image.GalleryID,
 			Filename:  image.Filename,
+			FilenameEscaped: url.PathEscape(image.Filename),
 		})
 	}
 	g.Templates.Show.Execute(w, r, data)
