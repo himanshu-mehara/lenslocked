@@ -160,9 +160,7 @@ package main
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/go-mail/mail/v2"
+	"webdev/models"
 )
 
 const (
@@ -173,27 +171,29 @@ const (
 )
 
 func main() {
-	from := "test@lenslocked.com"
-	to := "mehrahimanshu1708@gmail.com"
-	subject := "this is a test email "
-	plaintext := "this is the body of the email"
-	html := `<h1> hello there buddy </h1> <p> this is the email </p> 
-	<p> hope you enjoy it </p>`
-	msg := mail.NewMessage()
+	gs := models.GalleryService{}
+	fmt.Println(gs.Images(2))
+	// from := "test@lenslocked.com"
+	// to := "mehrahimanshu1708@gmail.com"
+	// subject := "this is a test email "
+	// plaintext := "this is the body of the email"
+	// html := `<h1> hello there buddy </h1> <p> this is the email </p>
+	// <p> hope you enjoy it </p>`
+	// msg := mail.NewMessage()
 
-	msg.SetHeader("to", to)
-	msg.SetHeader("from", from)
-	msg.SetHeader("subject", subject)
-	msg.SetBody("text/plain", plaintext)
-	msg.AddAlternative("text/html", html)
+	// msg.SetHeader("to", to)
+	// msg.SetHeader("from", from)
+	// msg.SetHeader("subject", subject)
+	// msg.SetBody("text/plain", plaintext)
+	// msg.AddAlternative("text/html", html)
 
-	msg.WriteTo(os.Stdout)
+	// msg.WriteTo(os.Stdout)
 
-	dialer := mail.NewDialer(Host, Port, Username, Password)
-	err := dialer.DialAndSend(msg)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("message sent ")
+	// dialer := mail.NewDialer(Host, Port, Username, Password)
+	// err := dialer.DialAndSend(msg)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println("message sent ")
 
 }
