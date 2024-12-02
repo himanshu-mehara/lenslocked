@@ -164,6 +164,7 @@ func main() {
 			r.Post("/{id}", galleriesC.Update)
 			r.Post("/{id}/delete", galleriesC.Delete)
 			r.Get("/",galleriesC.Index)
+			r.Post("/{id}/images/{filename}/delete", galleriesC.DeleteImage)
 		})
 	})
 
