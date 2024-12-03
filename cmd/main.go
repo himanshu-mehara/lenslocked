@@ -159,8 +159,9 @@
 package main
 
 import (
-	"fmt"
-	"webdev/models"
+	"io"
+	"net/http"
+	"os"
 )
 
 const (
@@ -170,30 +171,40 @@ const (
 	Password = "09efec939b67ef"
 )
 
+// func main() {
+// 	gs := models.GalleryService{}
+// 	fmt.Println(gs.Images(2))
+// 	// from := "test@lenslocked.com"
+// 	// to := "mehrahimanshu1708@gmail.com"
+// 	// subject := "this is a test email "
+// 	// plaintext := "this is the body of the email"
+// 	// html := `<h1> hello there buddy </h1> <p> this is the email </p>
+// 	// <p> hope you enjoy it </p>`
+// 	// msg := mail.NewMessage()
+
+// 	// msg.SetHeader("to", to)
+// 	// msg.SetHeader("from", from)
+// 	// msg.SetHeader("subject", subject)
+// 	// msg.SetBody("text/plain", plaintext)
+// 	// msg.AddAlternative("text/html", html)
+
+// 	// msg.WriteTo(os.Stdout)
+
+// 	// dialer := mail.NewDialer(Host, Port, Username, Password)
+// 	// err := dialer.DialAndSend(msg)
+// 	// if err != nil {
+// 	// 	panic(err)
+// 	// }
+// 	// fmt.Println("message sent ")
+
+// }
+
 func main() {
-	gs := models.GalleryService{}
-	fmt.Println(gs.Images(2))
-	// from := "test@lenslocked.com"
-	// to := "mehrahimanshu1708@gmail.com"
-	// subject := "this is a test email "
-	// plaintext := "this is the body of the email"
-	// html := `<h1> hello there buddy </h1> <p> this is the email </p>
-	// <p> hope you enjoy it </p>`
-	// msg := mail.NewMessage()
-
-	// msg.SetHeader("to", to)
-	// msg.SetHeader("from", from)
-	// msg.SetHeader("subject", subject)
-	// msg.SetBody("text/plain", plaintext)
-	// msg.AddAlternative("text/html", html)
-
-	// msg.WriteTo(os.Stdout)
-
-	// dialer := mail.NewDialer(Host, Port, Username, Password)
-	// err := dialer.DialAndSend(msg)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println("message sent ")
-
+	sketchyURL := "http://localhost:3000/galleries/2/images/../images-1/test.png"
+	resp, err := http.Get(sketchyURL)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	io.Copy(os.Stdout, resp.Body)
 }
