@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -170,7 +171,7 @@ func (g Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 
 func (g Galleries) Image(w http.ResponseWriter, r *http.Request) {
 	// filename := chi.URLParam(r, "filename")
-	filename := g.filename(w,r)
+	filename := g.Filename(w, r)
 	fmt.Println(filename)
 	galleryID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -192,9 +193,33 @@ func (g Galleries) Image(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, image.Path)
 }
 
+func (g Galleries) UploadImage(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r, userMustOwnGallery)
+	if err != nil {
+		return
+	}
+	err = r.ParseMultipartForm(5 << 20) // 5mb
+	if err != nil {
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	fileHeaders := r.MultipartForm.File["images"]
+	for _, fileHeader := range fileHeaders {
+		file, err := fileHeader.Open()
+		if err != nil {
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+		fmt.Printf("Attempting to upload %v for gallery %d.\n",fileHeader.Filename, gallery.ID)
+		io.Copy(w, file)
+		return 
+	}
+}
+
 func (g Galleries) DeleteImage(w http.ResponseWriter, r *http.Request) {
 	// filename := chi.URLParam(r, "filename")
-	filename := g.filename(w,r)
+	filename := g.Filename(w, r)
 	gallery, err := g.galleryByID(w, r, userMustOwnGallery)
 	if err != nil {
 		return
@@ -208,7 +233,7 @@ func (g Galleries) DeleteImage(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, editPath, http.StatusFound)
 }
 
-func (g Galleries) filename(w http.ResponseWriter, r *http.Request) string {
+func (g Galleries) Filename(w http.ResponseWriter, r *http.Request) string {
 	filename := chi.URLParam(r, "filename")
 	filename = filepath.Base(filename)
 	return filename
