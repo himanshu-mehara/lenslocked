@@ -66,7 +66,7 @@ func (u Users) Create(w http.ResponseWriter, r *http.Request) {
 	// 	HttpOnly: true,
 	// }
 	// http.SetCookie(w, cookie)
-	http.Redirect(w, r, "/users/me", http.StatusFound)
+	http.Redirect(w, r, "/galleries", http.StatusFound)
 }
 
 func (u Users) SignIn(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +104,7 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 	// 	HttpOnly: true,
 	// }
 	// http.SetCookie(w, &cookie)
-	http.Redirect(w, r, "/users/me", http.StatusFound)
+	http.Redirect(w, r, "/galleries", http.StatusFound)
 	// fmt.Fprintf(w, "user authencated %+v", user)
 }
 
